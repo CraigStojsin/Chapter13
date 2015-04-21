@@ -17,10 +17,21 @@
 @implementation CustomTableViewController
 {
     NSArray *recipes;
+    UISearchController *searchController;
+    NSArray *searchResults;
+    
 }
+
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    
+     searchController = [[UISearchController alloc]initWithSearchResultsController:nil];
+    [searchController.searchBar sizeToFit];
+    self.tableView.tableHeaderView = searchController.searchBar;
+    self.definesPresentationContext = YES;
     
     
     
@@ -110,6 +121,15 @@
     
     recipes = [NSArray arrayWithObjects:recipe1, recipe2, recipe3, recipe4, recipe5, recipe6, recipe7, recipe8, recipe9, recipe10, recipe11, recipe12, recipe13, recipe14, recipe15, recipe16, nil];
 }
+#pragma mark - Search Bar
+
+
+-(void)filterContentForSearchText:(NSString *)searchText {
+    NSPredicate *resultPredicate = [NSPredicate predicateWithFormat:@"name contains [c] %@",searchText];
+    searchResults = [recipes filteredArrayUsingPredicate:resultPredicate];
+    
+}
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
