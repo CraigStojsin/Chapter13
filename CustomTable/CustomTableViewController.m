@@ -27,11 +27,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    
-     searchController = [[UISearchController alloc]initWithSearchResultsController:nil];
-    [searchController.searchBar sizeToFit];
-    self.tableView.tableHeaderView = searchController.searchBar;
-    self.definesPresentationContext = YES;
+   
     
     
     
@@ -120,16 +116,30 @@
     recipe16.image = @"ham_and_cheese_panini.jpg";
     
     recipes = [NSArray arrayWithObjects:recipe1, recipe2, recipe3, recipe4, recipe5, recipe6, recipe7, recipe8, recipe9, recipe10, recipe11, recipe12, recipe13, recipe14, recipe15, recipe16, nil];
+
+    
+    
+    searchController = [[UISearchController alloc]initWithSearchResultsController:nil];
+    [searchController.searchBar sizeToFit];
+    searchController.searchResultsUpdater = self;
+    self.tableView.tableHeaderView = searchController.searchBar;
+    self.definesPresentationContext = YES;
+    searchController.dimsBackgroundDuringPresentation = NO;
 }
+
 #pragma mark - Search Bar
 
 
--(void)filterContentForSearchText:(NSString *)searchText {
-    NSPredicate *resultPredicate = [NSPredicate predicateWithFormat:@"name contains [c] %@",searchText];
-    searchResults = [recipes filteredArrayUsingPredicate:resultPredicate];
-    
+- (void)filterContentForSearchText:(NSString *)searchText {
+    NSPredicate *resultPredicate = [NSPredicate predicateWithFormat:@"name contains [c]%@",searchText];
+                                    searchResults = [recipes filteredArrayUsingPredicate:
+                                                     resultPredicate];
 }
 
+-(void) updateSearchResultsForSearchController:(UISearchController *)searchController1{
+    [self filterContentForSearchText:searchController1.searchBar.text];
+    [self.tableView reloadData];
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -146,15 +156,27 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
+    if (searchController.active) {
+        return searchResults.count;
+    } else {
+    
     return [recipes count];
 }
-
+}
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *cellIdentifier = @"Cell";
     CustomTableViewCell *cell = (CustomTableViewCell *)[tableView dequeueReusableCellWithIdentifier:cellIdentifier];
     
-    Recipe *recipe = [recipes objectAtIndex:indexPath.row];
+    Recipe *recipe;
+    if (searchController.active) {
+        recipe = [searchResults objectAtIndex:indexPath.row];
+    }else{
+        recipe  = [recipes objectAtIndex:indexPath.row];
+    }
+    
+    
+    
     cell.nameLabel.text = recipe.name;
     cell.thumbnailImageView.image = [UIImage imageNamed:recipe.image];
     cell.prepTimeLabel.text = recipe.prepTime;
@@ -170,7 +192,19 @@
     if ([segue.identifier isEqualToString:@"showRecipeDetail"]) {
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
         DetailViewController *destViewController = segue.destinationViewController;
-        Recipe *recipe = [recipes objectAtIndex:indexPath.row];
+       
+        Recipe *recipe;
+        if (searchController.active) {
+            recipe = [searchResults objectAtIndex:indexPath.row];
+        }else {
+            recipe = [recipes objectAtIndex:indexPath.row];
+        }
+        
+        
+        
+        
+        
+        
         destViewController.recipe = recipe;
         
     }
